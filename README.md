@@ -5,12 +5,14 @@ Some useful documentation for trainning session:
 https://firebase.google.com/docs/firestore/manage-data/add-data?hl=es
 
 ## Project setup and configuration
+To paly with this example you should have Vue.js installed on your machine.
+👉 https://cli.vuejs.org/guide/prototyping.html
+
+Before working on local you should also fill the `.env` file (Ask to repository owner).
+
 ```
 npm install
 ```
-
-Before working on local you should fill the `.env` file (Ask to repository owner).
-
 ### Compiles and hot-reloads for development
 ```
 npm run serve

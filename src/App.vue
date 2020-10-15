@@ -1,88 +1,209 @@
 <template>
   <div id="app">
-    <div class="logged" v-if="user.uid">Login: {{user.uid}}</div>
-    <div class="tienda" v-for="(tienda, i) in tiendas" :key="i">
-      <div class="nombre">Nombre: {{tienda.nombre}}</div>
-      <div class="telefono">Telefono: {{tienda.telefono}}</div>
-      <div class="pedidos">
-        <div v-if="tienda.pedidos.length > 0">Pedidos:</div>
-        <div class="pedido" v-for="(pedido, i) in tienda.pedidos" :key="i">
-          <div>{{pedido}}</div>
+    <nav class="navbar">
+      <el-button v-on:click="loggin" v-if="user && !user.uid"
+        >Iniciar sesión</el-button
+      >
+      <el-button type="danger" v-on:click="logOut" v-if="user && user.uid"
+        >Cerrar sesión</el-button
+      >
+
+      <el-button v-on:click="getStores" v-if="stores.length === 0"
+        >Listar tiendas</el-button
+      >
+      <el-button type="warning" v-on:click="hideStores" v-if="stores.length > 0"
+        >Ocultar tiendas</el-button
+      >
+    </nav>
+    <div class="content">
+      <div class="logged" v-if="user && user.uid">
+        Welcome <span>{{ user && user.uid }}</span>
+      </div>
+      <div class="stores" v-if="stores.length > 0">
+        <el-card class="store" v-for="(store, i) in stores" :key="i">
+          <div class="nombre">
+            Nombre: <span>{{ store.nombre }}</span>
+          </div>
+          <div class="telefono">
+            Telefono: <span>{{ store.telefono }}</span>
+          </div>
+          <div class="pedidos">
+            <div>Pedidos:</div>
+            <ul v-if="store.pedidos.length > 0">
+              <li class="pedido" v-for="(pedido, i) in store.pedidos" :key="i">
+                <div>
+                  <span>{{ pedido }}</span>
+                </div>
+              </li>
+            </ul>
+            <div v-else class="empty">No hay pedidos por el momento</div>
+          </div>
+          <el-button
+            class="delete-button"
+            type="danger"
+            icon="el-icon-close"
+            circle
+            v-on:click="deleteStore(store.id)"
+          />
+        </el-card>
+        <div class="add-button-wrapper">
+          <el-button
+            type="success"
+            icon="el-icon-plus"
+            circle
+            v-on:click="addStore"
+          />
         </div>
       </div>
-
     </div>
   </div>
 </template>
 
 <script>
 // import axios from 'axios'
-import { firebaseAuth, db } from '../firebase.js'
+import { firebaseAuth, db } from "../firebase.js";
 
 export default {
-  name: 'App',
+  name: "App",
   data() {
     return {
-      user : {},
-      tiendas: []
-    }
+      user: {},
+      stores: [],
+      storesToAdd: [
+        {
+          id: 144,
+          nombre: "Alcalá de Henares",
+          telefono: "633333333",
+          pedidos: ["es12234523","es12234523","es12234523","es12234523","es12234523","es12234523"],
+        },
+        {
+          id: 1524,
+          nombre: "Oleiros",
+          telefono: "677777777",
+          pedidos: [],
+        },
+        {
+          id: 345,
+          nombre: "Barcelona",
+          telefono: "655555555",
+          pedidos: ["es12234523","es12234523","es12234523","es12234523","es12234523","es12234523"],
+        },
+        {
+          id: 656,
+          nombre: "Cáceres",
+          telefono: "644444444",
+          pedidos: ["es12234523","es12234523","es12234523","es12234523","es12234523","es12234523"],
+        },
+        {
+          id: 389,
+          nombre: "Avila",
+          telefono: "644444444",
+          pedidos: ["es12234523","es12234523","es12234523","es12234523","es12234523","es12234523"],
+        },
+        {
+          id: 987,
+          nombre: "Santander",
+          telefono: "644444444",
+          pedidos: ["es12234523","es12234523","es12234523","es12234523","es12234523","es12234523"],
+        },
+        {
+          id: 234,
+          nombre: "Sevilla",
+          telefono: "644444444",
+          pedidos: ["es12234523","es12234523","es12234523","es12234523","es12234523","es12234523"],
+        },
+        {
+          id: 738,
+          nombre: "Cádiz",
+          telefono: "644444444",
+          pedidos: ["es12234523","es12234523","es12234523","es12234523","es12234523","es12234523"],
+        },
+      ],
+    };
   },
   methods: {
-    init () {
+    loggin() {
       let that = this;
-      db.collection('Tiendas')
-          // .where("timestamp", ">=", that.date)
-          // .where(
-          //  "timestamp",
-          //  "<=",
-           // that.config.netxDays[that.config.netxDays.length - 1]
-          //)
-          .onSnapshot((querySnapshot) => {
-            querySnapshot.docChanges().forEach((change) => {
-              let modifiedIndex = [];
-              switch (change.type) {
-                case "added":
-                  that.tiendas.push(change.doc.data());
-                  console.log('added');
-                  break;
-                case "modified":
-                  modifiedIndex = that.tiendas.findIndex(
-                    (item) => item.id === change.doc.data().id
-                  );
-                  that.tiendas[modifiedIndex].nombre = change.doc.data().nombre;
-                  that.tiendas[modifiedIndex].telefono = change.doc.data().telefono;
-                  that.tiendas[modifiedIndex].pedidos = change.doc.data().pedidos;
-                  console.log('modified');
-                  return;
-                case "removed":
-                  console.log("Removed from BBDD");
-                  break;
-              }
-            });
-          });
-      
-    }
+      firebaseAuth.signInAnonymously().catch(function(error) {
+        // Handle Errors here.
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        console.log(errorCode, errorMessage);
+        // ...
+      });
+      firebaseAuth.onAuthStateChanged(function(user) {
+        if (user) {
+          that.user = user;
+        }
+      });
+    },
+    logOut() {
+      let that = this;
+      const user = firebaseAuth.currentUser;
+      user
+        .delete()
+        .then(function() {
+          // User deleted.
+          that.user = {};
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+    },
+    getStores() {
+      let that = this;
+      db.collection("Tiendas").onSnapshot((querySnapshot) => {
+        querySnapshot.docChanges().forEach((change) => {
+          let modifiedIndex = [];
+          switch (change.type) {
+            case "added":
+              that.stores.push(change.doc.data());
+              console.log("added");
+              break;
+            case "modified":
+              modifiedIndex = that.stores.findIndex(
+                (item) => item.id === change.doc.data().id
+              );
+              that.stores[modifiedIndex].nombre = change.doc.data().nombre;
+              that.stores[modifiedIndex].telefono = change.doc.data().telefono;
+              that.stores[modifiedIndex].pedidos = change.doc.data().pedidos;
+              console.log("modified");
+              return;
+            case "removed":
+              console.log("Removed from BBDD");
+              that.stores = that.stores.filter(
+                (item) => item.id !== change.doc.data().id
+              );
+              break;
+          }
+        });
+      });
+    },
+    hideStores() {
+      this.stores = [];
+    },
+    addStore() {
+      let that = this;
+      db.collection("Tiendas")
+        .doc(that.storesToAdd[that.stores.length].id.toString())
+        .set(that.storesToAdd[that.stores.length]);
+    },
+    deleteStore(id) {
+      db.collection("Tiendas")
+        .doc(id.toString())
+        .delete()
+        .then(function() {
+          console.log("Document successfully deleted!");
+        })
+        .catch(function(error) {
+          console.error("Error removing document: ", error);
+        });
+    },
   },
-  created () {
-    let that = this;
-    firebaseAuth.signInAnonymously().catch(function(error) {
-      // Handle Errors here.
-      var errorCode = error.code;
-      var errorMessage = error.message;
-      console.log(errorCode, errorMessage);
-      // ...
-    });
-    firebaseAuth.onAuthStateChanged(function(user) {
-      if (user) {
-        that.user = user;
-        that.init();
-      }
-    });
-  }
-}
+};
 </script>
 
-<style>
+<style type="less">
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -92,14 +213,62 @@ export default {
   margin-top: 60px;
 }
 
-.logged {
-  margin-bottom: 20px;
+.navbar {
 }
 
-.tienda {
-  border-radius: 4px;
-  border: 1px solid grey;
-  padding: 16px;
-  margin-bottom: 8px;
+.content {
+  padding: 24px;
+}
+
+.content .logged {
+  margin-bottom: 24px;
+  font-size: 20px;
+}
+
+.content .logged span {
+  font-weight: bold;
+}
+
+.content .stores {
+  display: flex;
+  flex-wrap: wrap;
+  position: relative;
+}
+
+.content .stores .store {
+  margin: 8px;
+  width: 30%;
+  text-align: left;
+  position: relative;
+}
+
+.store span {
+  font-size: 13px;
+  font-style: italic;
+}
+
+.delete-button {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+}
+
+ul {
+  margin: 0;
+}
+
+.empty {
+  font-style: italic;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.add-button-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  position: absolute;
+  right: 0;
+  top: 0;
 }
 </style>

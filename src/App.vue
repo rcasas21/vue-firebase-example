@@ -62,17 +62,15 @@
           <el-input-number v-model="form.id" :min="1"></el-input-number>
         </el-form-item>
         <el-form-item label="Nombre Tienda" :label-width="formLabelWidth">
-          <el-input v-model="form.nombre" autocomplete="off"></el-input>
+          <el-input v-model="form.nombre"></el-input>
         </el-form-item>
         <el-form-item label="Teléfono Tienda" :label-width="formLabelWidth">
-          <el-input v-model="form.telefono" autocomplete="off"></el-input>
+          <el-input v-model="form.telefono"></el-input>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">Cancel</el-button>
-        <el-button type="primary" @click="addStore"
-          >Confirm</el-button
-        >
+        <el-button type="primary" @click="addStore">Confirm</el-button>
       </span>
     </el-dialog>
   </div>
@@ -87,12 +85,7 @@ export default {
   data() {
     return {
       dialogFormVisible: false,
-      form: {
-        id: "",
-        nombre: "",
-        telefono: "",
-        pedidos: [],
-      },
+      form: this.setForm(),
       formLabelWidth: "120px",
       user: {},
       stores: [],
@@ -200,14 +193,14 @@ export default {
   methods: {
     loggin() {
       let that = this;
-      firebaseAuth.signInAnonymously().catch(function (error) {
+      firebaseAuth.signInAnonymously().catch(function(error) {
         // Handle Errors here.
         var errorCode = error.code;
         var errorMessage = error.message;
         console.log(errorCode, errorMessage);
         // ...
       });
-      firebaseAuth.onAuthStateChanged(function (user) {
+      firebaseAuth.onAuthStateChanged(function(user) {
         if (user) {
           that.user = user;
         }
@@ -218,11 +211,11 @@ export default {
       const user = firebaseAuth.currentUser;
       user
         .delete()
-        .then(function () {
+        .then(function() {
           // User deleted.
           that.user = {};
         })
-        .catch(function (error) {
+        .catch(function(error) {
           console.log(error);
         });
     },
@@ -262,21 +255,33 @@ export default {
       let that = this;
       db.collection("Tiendas")
         .doc(that.form.id.toString())
-        .set(that.form);
+        .set(that.form)
+        .then(() => {
+          that.toggleDialog();
+          that.form = that.setForm();
+        });
+    },
+    setForm() {
+      return {
+        id: "",
+        nombre: "",
+        telefono: "",
+        pedidos: [],
+      };
     },
     deleteStore(id) {
       db.collection("Tiendas")
         .doc(id.toString())
         .delete()
-        .then(function () {
+        .then(function() {
           console.log("Document successfully deleted!");
         })
-        .catch(function (error) {
+        .catch(function(error) {
           console.error("Error removing document: ", error);
         });
     },
     toggleDialog() {
-      !this.dialogFormVisible;
+      this.dialogFormVisible = !this.dialogFormVisible;
     },
   },
 };

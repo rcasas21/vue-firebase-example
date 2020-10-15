@@ -19,8 +19,17 @@
       <div class="logged" v-if="user && user.uid">
         Welcome <span>{{ user && user.uid }}</span>
       </div>
+      <div v-if="stores.length > 0">
+        Add Item
+        <input v-model="storeAddItem" placeholder="Select Store Id"/>
+        <input v-model="itemToAdd" placeholder="Add Item"/>
+        <el-button class="el-icon-circle-plus" @click="addItem()"></el-button>
+      </div>
       <div class="stores" v-if="stores.length > 0">
         <el-card class="store" v-for="(store, i) in stores" :key="i">
+          <div class="nombre">
+            Id: <span>{{ store.id }}</span>
+          </div>
           <div class="nombre">
             Nombre: <span>{{ store.nombre }}</span>
           </div>
@@ -28,11 +37,13 @@
             Telefono: <span>{{ store.telefono }}</span>
           </div>
           <div class="pedidos">
-            <div>Pedidos:</div>
+            <div>Pedidos:
+            </div>
             <ul v-if="store.pedidos.length > 0">
               <li class="pedido" v-for="(pedido, i) in store.pedidos" :key="i">
                 <div>
                   <span>{{ pedido }}</span>
+                  <i class="el-icon-delete" @click="deleteItem(store, pedido)"></i>
                 </div>
               </li>
             </ul>
@@ -61,7 +72,7 @@
 
 <script>
 // import axios from 'axios'
-import { firebaseAuth, db } from "../firebase.js";
+import { firebaseAuth, db, fieldValue } from "../firebase.js";
 
 export default {
   name: "App",
@@ -69,12 +80,14 @@ export default {
     return {
       user: {},
       stores: [],
+      storeAddItem: '',
+      itemToAdd: '',
       storesToAdd: [
         {
           id: 144,
           nombre: "Alcalá de Henares",
           telefono: "633333333",
-          pedidos: ["es12234523","es12234523","es12234523","es12234523","es12234523","es12234523"],
+          pedidos: ["es1","es2","es3","es4","es5","es6"],
         },
         {
           id: 1524,
@@ -86,19 +99,19 @@ export default {
           id: 345,
           nombre: "Barcelona",
           telefono: "655555555",
-          pedidos: ["es12234523","es12234523","es12234523","es12234523","es12234523","es12234523"],
+          pedidos: ["es1","es2","es3","es4","es5","es6"],
         },
         {
           id: 656,
           nombre: "Cáceres",
           telefono: "644444444",
-          pedidos: ["es12234523","es12234523","es12234523","es12234523","es12234523","es12234523"],
+          pedidos: ["es1","es12234523","es12234523","es12234523","es12234523","es12234523"],
         },
         {
           id: 389,
           nombre: "Avila",
           telefono: "644444444",
-          pedidos: ["es12234523","es12234523","es12234523","es12234523","es12234523","es12234523"],
+          pedidos: ["es1","es12234523","es12234523","es12234523","es12234523","es12234523"],
         },
         {
           id: 987,
@@ -110,13 +123,13 @@ export default {
           id: 234,
           nombre: "Sevilla",
           telefono: "644444444",
-          pedidos: ["es12234523","es12234523","es12234523","es12234523","es12234523","es12234523"],
+          pedidos: ["es1","es12234523","es12234523","es12234523","es12234523","es12234523"],
         },
         {
           id: 738,
           nombre: "Cádiz",
           telefono: "644444444",
-          pedidos: ["es12234523","es12234523","es12234523","es12234523","es12234523","es12234523"],
+          pedidos: ["es1","es12234523","es12234523","es12234523","es3","es12234523"],
         },
       ],
     };
@@ -198,6 +211,35 @@ export default {
         .catch(function(error) {
           console.error("Error removing document: ", error);
         });
+    },
+    addItem() {
+      console.log(this.storeAddItem)
+      let datStore = this.storeAddItem
+      let datItem = this.itemToAdd
+      db.collection("Tiendas")
+              .doc(datStore)
+              .update({
+                "pedidos": fieldValue.arrayUnion(datItem)
+              })
+              .then(function() {
+                console.log("Document successfully updated!");
+              })
+              .catch(function(error) {
+                console.error("Error removing document: ", error);
+              });
+    },
+    deleteItem(store, item) {
+      db.collection("Tiendas")
+          .doc(store.id.toString())
+          .update({
+                "pedidos": fieldValue.arrayRemove(item)
+          })
+          .then(function() {
+            console.log("Document successfully updated!");
+          })
+          .catch(function(error) {
+            console.error("Error removing document: ", error);
+          });
     },
   },
 };

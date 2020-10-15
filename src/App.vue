@@ -62,11 +62,28 @@
             type="success"
             icon="el-icon-plus"
             circle
-            v-on:click="addStore"
+            v-on:click="toggleDialog"
           />
         </div>
       </div>
     </div>
+    <el-dialog title="Nueva Tienda" :visible.sync="dialogFormVisible">
+      <el-form label-position="top" :model="form">
+        <el-form-item label="id Tienda" :label-width="formLabelWidth">
+          <el-input-number v-model="form.id" :min="1"></el-input-number>
+        </el-form-item>
+        <el-form-item label="Nombre Tienda" :label-width="formLabelWidth">
+          <el-input v-model="form.nombre"></el-input>
+        </el-form-item>
+        <el-form-item label="Teléfono Tienda" :label-width="formLabelWidth">
+          <el-input v-model="form.telefono"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisible = false">Cancel</el-button>
+        <el-button type="primary" @click="addStore">Confirm</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -78,60 +95,13 @@ export default {
   name: "App",
   data() {
     return {
+      dialogFormVisible: false,
+      form: this.setForm(),
+      formLabelWidth: "120px",
       user: {},
       stores: [],
       storeAddItem: '',
-      itemToAdd: '',
-      storesToAdd: [
-        {
-          id: 144,
-          nombre: "Alcalá de Henares",
-          telefono: "633333333",
-          pedidos: ["es1","es2","es3","es4","es5","es6"],
-        },
-        {
-          id: 1524,
-          nombre: "Oleiros",
-          telefono: "677777777",
-          pedidos: [],
-        },
-        {
-          id: 345,
-          nombre: "Barcelona",
-          telefono: "655555555",
-          pedidos: ["es1","es2","es3","es4","es5","es6"],
-        },
-        {
-          id: 656,
-          nombre: "Cáceres",
-          telefono: "644444444",
-          pedidos: ["es1","es12234523","es12234523","es12234523","es12234523","es12234523"],
-        },
-        {
-          id: 389,
-          nombre: "Avila",
-          telefono: "644444444",
-          pedidos: ["es1","es12234523","es12234523","es12234523","es12234523","es12234523"],
-        },
-        {
-          id: 987,
-          nombre: "Santander",
-          telefono: "644444444",
-          pedidos: ["es12234523","es12234523","es12234523","es12234523","es12234523","es12234523"],
-        },
-        {
-          id: 234,
-          nombre: "Sevilla",
-          telefono: "644444444",
-          pedidos: ["es1","es12234523","es12234523","es12234523","es12234523","es12234523"],
-        },
-        {
-          id: 738,
-          nombre: "Cádiz",
-          telefono: "644444444",
-          pedidos: ["es1","es12234523","es12234523","es12234523","es3","es12234523"],
-        },
-      ],
+      itemToAdd: ''
     };
   },
   methods: {
@@ -198,8 +168,20 @@ export default {
     addStore() {
       let that = this;
       db.collection("Tiendas")
-        .doc(that.storesToAdd[that.stores.length].id.toString())
-        .set(that.storesToAdd[that.stores.length]);
+        .doc(that.form.id.toString())
+        .set(that.form)
+        .then(() => {
+          that.toggleDialog();
+          that.form = that.setForm();
+        });
+    },
+    setForm() {
+      return {
+        id: "",
+        nombre: "",
+        telefono: "",
+        pedidos: [],
+      };
     },
     deleteStore(id) {
       db.collection("Tiendas")
@@ -240,6 +222,8 @@ export default {
           .catch(function(error) {
             console.error("Error removing document: ", error);
           });
+    toggleDialog() {
+      this.dialogFormVisible = !this.dialogFormVisible;
     },
   },
 };
